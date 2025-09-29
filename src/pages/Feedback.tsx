@@ -1,7 +1,66 @@
 import React from 'react';
+import { useState } from 'react';
 import { MessageCircle, Mail, Phone, Calendar } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import type { FeedbackSubmission } from '../lib/supabase';
 
 const Feedback: React.FC = () => {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    category: '',
+    message: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+    setErrorMessage('');
+
+    try {
+      const submissionData: Omit<FeedbackSubmission, 'id' | 'created_at'> = {
+        name: formData.name,
+        email: formData.email,
+        category: formData.category,
+        message: formData.message
+      };
+
+      const { error } = await supabase
+        .from('feedback_submissions')
+        .insert([submissionData]);
+
+      if (error) {
+        throw error;
+      }
+
+      setSubmitStatus('success');
+      setFormData({
+        name: '',
+        email: '',
+        category: '',
+        message: ''
+      });
+    } catch (error) {
+      console.error('Error submitting feedback:', error);
+      setSubmitStatus('error');
+      setErrorMessage(error instanceof Error ? error.message : 'An unexpected error occurred');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="bg-white">
       {/* Header */}
@@ -60,7 +119,42 @@ const Feedback: React.FC = () => {
               <h3 className="text-2xl font-bold text-mn-primary mb-6">
                 Submit Your Feedback
               </h3>
-              <form className="space-y-6">
+              
+              {submitStatus === 'success' && (
+                <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm font-medium text-green-800">
+                        Thank you! Your feedback has been submitted successfully.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {submitStatus === 'error' && (
+                <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm font-medium text-red-800">
+                        Error submitting feedback: {errorMessage}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
                     Name
@@ -68,8 +162,13 @@ const Feedback: React.FC = () => {
                   <input
                     type="text"
                     id="name"
+                    name="name"
+                    required
+                    value={formData.name}
+                    onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
                     placeholder="Your full name"
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div>
@@ -79,8 +178,13 @@ const Feedback: React.FC = () => {
                   <input
                     type="email"
                     id="email"
+                    name="email"
+                    required
+                    value={formData.email}
+                    onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
                     placeholder="your.email@example.com"
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div>
@@ -89,7 +193,12 @@ const Feedback: React.FC = () => {
                   </label>
                   <select
                     id="category"
+                    name="category"
+                    required
+                    value={formData.category}
+                    onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
+                    disabled={isSubmitting}
                   >
                     <option value="">Select a category</option>
                     <option value="general">General Feedback</option>
@@ -104,16 +213,22 @@ const Feedback: React.FC = () => {
                   </label>
                   <textarea
                     id="message"
+                    name="message"
+                    required
                     rows={6}
+                    value={formData.message}
+                    onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
                     placeholder="Share your thoughts, suggestions, or questions..."
+                    disabled={isSubmitting}
                   ></textarea>
                 </div>
                 <button
                   type="submit"
-                  className="w-full bg-mn-primary text-white py-3 px-6 rounded-lg font-semibold hover:bg-mn-accent-teal transition-colors"
+                  disabled={isSubmitting}
+                  className="w-full bg-mn-primary text-white py-3 px-6 rounded-lg font-semibold hover:bg-mn-accent-teal transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Submit Feedback
+                  {isSubmitting ? 'Submitting...' : 'Submit Feedback'}
                 </button>
               </form>
             </div>
