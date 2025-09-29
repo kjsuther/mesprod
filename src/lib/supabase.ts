@@ -10,11 +10,17 @@ if (!supabaseUrl || !supabaseAnonKey) {
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Database types for TypeScript
-export interface FeedbackSubmission {
+export interface FeedbackOutbox {
   id?: string
   created_at?: string
-  name: string
-  email: string
-  category: string
-  message: string
+  status?: string
+  attempts?: number
+  payload: {
+    name: string
+    email: string
+    category: string
+    message: string
+  }
+  processed_at?: string
+  error_message?: string
 }

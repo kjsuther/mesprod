@@ -2,7 +2,6 @@ import React from 'react';
 import { useState } from 'react';
 import { MessageCircle, Mail, Phone, Calendar } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import type { FeedbackSubmission } from '../lib/supabase';
 
 const Feedback: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -30,19 +29,39 @@ const Feedback: React.FC = () => {
     setErrorMessage('');
 
     try {
-      const submissionData: Omit<FeedbackSubmission, 'id' | 'created_at'> = {
+      // Insert into feedback_outbox table with payload structure
+      const outboxData = {
+        payload: {
+          name: formData.name,
+          email: formData.email,
+          category: formData.category,
+          message: formData.message
+        }
+      };
+
+      const { error } = await supabase
+        .from('feedback_outbox')
+        .insert([outboxData]);
+
+      if (error) {
+        throw error;
+      }
+
+      // Also insert into feedback_submissions for record keeping
+      const submissionData = {
         name: formData.name,
         email: formData.email,
         category: formData.category,
         message: formData.message
       };
 
-      const { error } = await supabase
+      const { error: submissionError } = await supabase
         .from('feedback_submissions')
         .insert([submissionData]);
 
-      if (error) {
-        throw error;
+      if (submissionError) {
+        console.warn('Failed to insert into feedback_submissions:', submissionError);
+        // Don't throw here - the main functionality (outbox) succeeded
       }
 
       setSubmitStatus('success');
