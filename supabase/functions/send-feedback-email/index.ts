@@ -39,7 +39,7 @@ serve(async (req) => {
     const { data, error } = await resend.emails.send({
       from: 'Feedback Form <onboarding@resend.dev>', // IMPORTANT: Replace with your verified Resend domain
       to: [recipientEmail],
-      subject: `New Feedback: ${category} from ${name}`,
+      subject: \`New Feedback: ${category} from ${name}`,
       text: emailBody,
     });
 
