@@ -142,6 +142,13 @@ Deno.serve(async (req) => {
 
           failedCount++;
         }
+
+        // Add delay to respect Resend rate limits (2 requests per second)
+        // Wait 600ms between requests to stay well under the limit
+        if (processedCount + failedCount < pendingFeedback.length) {
+          console.log('Waiting 600ms before processing next feedback...');
+          await new Promise(resolve => setTimeout(resolve, 600));
+        }
       } catch (error) {
         console.error(`Error processing feedback ID: ${feedback.id}`, error);
         
