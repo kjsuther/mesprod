@@ -113,11 +113,14 @@ Deno.serve(async (req) => {
           }),
         });
 
+        const responseText = await emailResponse.text();
+        console.log(`Email response for feedback ID: ${feedback.id} - Status: ${emailResponse.status}, Body: ${responseText}`);
+        
         if (emailResponse.ok) {
           console.log(`Email sent successfully for feedback ID: ${feedback.id}`);
           
           // Update status to 'processed'
-          await supabase
+          const { error: updateError } = await supabase
             .from('feedback_outbox')
             .update({ 
               status: 'processed',
@@ -126,19 +129,28 @@ Deno.serve(async (req) => {
             })
             .eq('id', feedback.id);
 
+          if (updateError) {
+            console.error(`Failed to update status to processed for feedback ID: ${feedback.id}`, updateError);
+          } else {
+            console.log(`Successfully updated status to processed for feedback ID: ${feedback.id}`);
+          }
+
           processedCount++;
         } else {
-          const errorText = await emailResponse.text();
-          console.error(`Failed to send email for feedback ID: ${feedback.id}. Status: ${emailResponse.status}, Error: ${errorText}`);
+          console.error(`Failed to send email for feedback ID: ${feedback.id}. Status: ${emailResponse.status}, Error: ${responseText}`);
           
           // Update status to 'failed'
-          await supabase
+          const { error: updateError } = await supabase
             .from('feedback_outbox')
             .update({ 
               status: 'failed',
-              error_message: `HTTP ${emailResponse.status}: ${errorText}`
+              error_message: `HTTP ${emailResponse.status}: ${responseText}`
             })
             .eq('id', feedback.id);
+
+          if (updateError) {
+            console.error(`Failed to update status to failed for feedback ID: ${feedback.id}`, updateError);
+          }
 
           failedCount++;
         }
