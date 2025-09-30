@@ -113,10 +113,20 @@ Deno.serve(async (req) => {
           }),
         });
 
-        const responseText = await emailResponse.text();
+        let responseText = '';
+        try {
+          responseText = await emailResponse.text();
+        } catch (textError) {
+          console.error(`Failed to read response text for feedback ID: ${feedback.id}:`, textError);
+          responseText = 'Failed to read response';
+        }
+        
         console.log(`Email response for feedback ID: ${feedback.id} - Status: ${emailResponse.status}, Body: ${responseText}`);
         
-        if (emailResponse.ok) {
+        // Consider both 200 and 201 as success, and also check for success indicators in response
+        const isSuccess = emailResponse.ok || emailResponse.status === 200 || emailResponse.status === 201;
+        
+        if (isSuccess) {
           console.log(`Email sent successfully for feedback ID: ${feedback.id}`);
           
           // Update status to 'processed'
@@ -131,28 +141,52 @@ Deno.serve(async (req) => {
 
           if (updateError) {
             console.error(`Failed to update status to processed for feedback ID: ${feedback.id}`, updateError);
+            // Even if DB update fails, don't retry the email
+            failedCount++;
           } else {
             console.log(`Successfully updated status to processed for feedback ID: ${feedback.id}`);
+            processedCount++;
           }
-
-          processedCount++;
         } else {
           console.error(`Failed to send email for feedback ID: ${feedback.id}. Status: ${emailResponse.status}, Error: ${responseText}`);
           
-          // Update status to 'failed'
-          const { error: updateError } = await supabase
-            .from('feedback_outbox')
-            .update({ 
-              status: 'failed',
-              error_message: `HTTP ${emailResponse.status}: ${responseText}`
-            })
-            .eq('id', feedback.id);
+          // Only mark as failed if it's not a temporary error and we've tried multiple times
+          const maxAttempts = 3;
+          const currentAttempts = feedback.attempts || 0;
+          
+          if (currentAttempts >= maxAttempts) {
+            console.log(`Max attempts reached for feedback ID: ${feedback.id}, marking as failed`);
+            
+            // Update status to 'failed'
+            const { error: updateError } = await supabase
+              .from('feedback_outbox')
+              .update({ 
+                status: 'failed',
+                error_message: `HTTP ${emailResponse.status}: ${responseText} (after ${currentAttempts} attempts)`
+              })
+              .eq('id', feedback.id);
 
-          if (updateError) {
-            console.error(`Failed to update status to failed for feedback ID: ${feedback.id}`, updateError);
+            if (updateError) {
+              console.error(`Failed to update status to failed for feedback ID: ${feedback.id}`, updateError);
+            }
+            
+            failedCount++;
+          } else {
+            console.log(`Temporary failure for feedback ID: ${feedback.id}, will retry later (attempt ${currentAttempts}/${maxAttempts})`);
+            
+            // Reset status to 'pending' for retry, but don't increment attempts here (already done above)
+            const { error: updateError } = await supabase
+              .from('feedback_outbox')
+              .update({ 
+                status: 'pending',
+                error_message: `Temporary failure: HTTP ${emailResponse.status}: ${responseText}`
+              })
+              .eq('id', feedback.id);
+
+            if (updateError) {
+              console.error(`Failed to reset status to pending for feedback ID: ${feedback.id}`, updateError);
+            }
           }
-
-          failedCount++;
         }
 
         // Add delay to respect Resend rate limits (2 requests per second)
