@@ -272,14 +272,31 @@ const Feedback: React.FC = () => {
             </p>
             <div className="flex justify-center">
               <div className="w-full max-w-5xl">
-                <div className="relative w-full" style={{ paddingBottom: '62.25%' }}>
+                <div className="relative w-full bg-gray-100 rounded-lg border-2 border-gray-200" style={{ paddingBottom: '62.25%' }}>
                   <iframe
                     title="RFI Vendor Survey Responses"
-                    className="absolute top-0 left-0 w-full h-full rounded-lg shadow-md"
+                    className="absolute top-0 left-0 w-full h-full rounded-lg"
                     src="https://app.powerbi.com/view?r=eyJrIjoiMGQ1NGY1YjktNTAzMy00YzhiLTgzMzMtY2JhNWEzOTY4NDQ4IiwidCI6ImUwNTBkOWJiLTg4MDUtNGNkNi04NTRlLWQxYzYzMWI3ZjcxZCJ9"
                     frameBorder="0"
                     allowFullScreen={true}
+                    sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
                   />
+                </div>
+                <div className="mt-6 text-center">
+                  <p className="text-sm text-gray-600 mb-3">
+                    If the dashboard does not display above, you can view it directly:
+                  </p>
+                  <a
+                    href="https://app.powerbi.com/view?r=eyJrIjoiMGQ1NGY1YjktNTAzMy00YzhiLTgzMzMtY2JhNWEzOTY4NDQ4IiwidCI6ImUwNTBkOWJiLTg4MDUtNGNkNi04NTRlLWQxYzYzMWI3ZjcxZCJ9"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center px-6 py-3 bg-mn-accent-teal text-white font-semibold rounded-lg hover:bg-mn-accent-darkteal transition-colors shadow-md"
+                  >
+                    Open Dashboard in New Tab
+                    <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
                 </div>
               </div>
             </div>
