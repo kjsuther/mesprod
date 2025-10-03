@@ -220,12 +220,36 @@ export interface SliceRFPTestData {
 }
 
 const sliceFocusOptions = [
-  'Member Portal & Self-Service',
-  'Provider Portal & Claims',
-  'Eligibility & Enrollment',
-  'Care Management',
-  'Reporting & Analytics',
-  'Third-Party Integration Layer'
+  '1A - New applicant (ineligible for MA, but eligible for MSP)',
+  '1B - Household Change',
+  '1C - Reduce Income',
+  '1D - Annual Redetermination (Version 1 - Auto Renew)',
+  '1E - Annual Redetermination (Version 2 - Manual Review Required)',
+  '1F - New Enrollment',
+  '1G - Asset reduction increases coverage and authorized rep',
+  '1H - Household Change and Spend-Down Transition',
+  '1I - Asset change for household',
+  '1J - Pregnancy',
+  '1K - Give birth',
+  '1L - Additional pregnancy',
+  '1M - Remove child from the home',
+  '1N - Foster Care',
+  '1O - Adoption',
+  '1P - Annual Reviews for automatically eligible cases',
+  '2A - New Disability Application with Spenddown',
+  '3A - New application for LTC Facility',
+  '4A - Children with a MA basis due to disability turning 18',
+  '5A - Tribal enrollment',
+  '5B - Tribal and limited internet access enrollment',
+  '6A - Multiple PMI – Newborn (also on a food support case)',
+  '6B - Multiple PMI – Same person applies with alternative demographic details',
+  '7A - MA-EPD New Application',
+  '7B - MA-EPD – Income decrease due to job loss',
+  '7C - MA-EPD – Income Increase due to marriage',
+  '8A - Work Requirements ("Community Engagement") – New Enrollment',
+  '8B - Work Requirements ("Community Engagement") – 6 Month renewal',
+  '8C - Work Requirements ("Community Engagement") – No longer meeting work requirements',
+  '8D - Work Requirements ("Community Engagement") – New enrollment with employment'
 ];
 
 function generateSliceSolution(): string {
