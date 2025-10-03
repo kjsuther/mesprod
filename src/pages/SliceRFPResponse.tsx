@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChefHat, DollarSign, Users, Package, FileText, Send } from 'lucide-react';
 import { generateSliceRFPPDF } from '../utils/pdfGenerator';
 import { supabase } from '../lib/supabase';
+import { generateSliceRFPTestData } from '../utils/testDataGenerator';
 
 const SliceRFPResponse: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -34,6 +35,72 @@ const SliceRFPResponse: React.FC = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [isTestMode, setIsTestMode] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+        e.preventDefault();
+        setIsTestMode(prev => {
+          const newTestMode = !prev;
+          if (newTestMode) {
+            populateTestData();
+            console.log('Test Mode ACTIVATED');
+          } else {
+            clearFormData();
+            console.log('Test Mode DEACTIVATED');
+          }
+          return newTestMode;
+        });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const populateTestData = () => {
+    const testData = generateSliceRFPTestData();
+    setFormData({
+      companyName: testData.companyName,
+      contactName: testData.contactName,
+      contactEmail: testData.contactEmail,
+      contactPhone: testData.contactPhone,
+      sliceFocus: testData.sliceFocus,
+      customSliceFocus: testData.customSliceFocus,
+      cakeSolution: testData.cakeSolution,
+      ingredientsNeeded: testData.ingredientsNeeded,
+      dependencies: testData.dependencies,
+      teamDescription: testData.teamDescription,
+      firstSliceCost: testData.firstSliceCost,
+      cakeBatterScaleCost: testData.cakeBatterScaleCost,
+      monthlyTeamCost: testData.monthlyTeamCost,
+      resume1: null,
+      resume2: null,
+      resume3: null
+    });
+  };
+
+  const clearFormData = () => {
+    setFormData({
+      companyName: '',
+      contactName: '',
+      contactEmail: '',
+      contactPhone: '',
+      sliceFocus: '',
+      customSliceFocus: '',
+      cakeSolution: '',
+      ingredientsNeeded: '',
+      dependencies: '',
+      teamDescription: '',
+      firstSliceCost: '',
+      cakeBatterScaleCost: '',
+      monthlyTeamCost: '',
+      resume1: null,
+      resume2: null,
+      resume3: null
+    });
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;

@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Settings, DollarSign, Users, FileText, Send } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { generateLayerRFPTestData } from '../utils/testDataGenerator';
 
 const LayerRFPResponse: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -31,6 +32,68 @@ const LayerRFPResponse: React.FC = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [isTestMode, setIsTestMode] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+        e.preventDefault();
+        setIsTestMode(prev => {
+          const newTestMode = !prev;
+          if (newTestMode) {
+            populateTestData();
+            console.log('Test Mode ACTIVATED');
+          } else {
+            clearFormData();
+            console.log('Test Mode DEACTIVATED');
+          }
+          return newTestMode;
+        });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const populateTestData = () => {
+    const testData = generateLayerRFPTestData();
+    setFormData({
+      companyName: testData.companyName,
+      contactName: testData.contactName,
+      contactEmail: testData.contactEmail,
+      contactPhone: testData.contactPhone,
+      layerCapability: testData.layerCapability,
+      customLayerCapability: testData.customLayerCapability,
+      definitionOfDone: testData.definitionOfDone,
+      slaCommitments: testData.slaCommitments,
+      teamDescription: testData.teamDescription,
+      definitionOfDoneCost: testData.definitionOfDoneCost,
+      monthlySupportCost: testData.monthlySupportCost,
+      resume1: null,
+      resume2: null,
+      resume3: null
+    });
+  };
+
+  const clearFormData = () => {
+    setFormData({
+      companyName: '',
+      contactName: '',
+      contactEmail: '',
+      contactPhone: '',
+      layerCapability: '',
+      customLayerCapability: '',
+      definitionOfDone: '',
+      slaCommitments: '',
+      teamDescription: '',
+      definitionOfDoneCost: '',
+      monthlySupportCost: '',
+      resume1: null,
+      resume2: null,
+      resume3: null
+    });
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;

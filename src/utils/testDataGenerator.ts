@@ -200,3 +200,157 @@ export function generateSoftwareProviderTestData(): SoftwareProviderTestData {
     provisioningTimeline: randomElement(provisioningTimelines)
   };
 }
+
+// Slice RFP Test Data
+
+export interface SliceRFPTestData {
+  companyName: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string;
+  sliceFocus: string;
+  customSliceFocus: string;
+  cakeSolution: string;
+  ingredientsNeeded: string;
+  dependencies: string;
+  teamDescription: string;
+  firstSliceCost: string;
+  cakeBatterScaleCost: string;
+  monthlyTeamCost: string;
+}
+
+const sliceFocusOptions = [
+  'Member Portal & Self-Service',
+  'Provider Portal & Claims',
+  'Eligibility & Enrollment',
+  'Care Management',
+  'Reporting & Analytics',
+  'Third-Party Integration Layer'
+];
+
+function generateSliceSolution(): string {
+  const approaches = [
+    'microservices architecture with containerized deployment',
+    'serverless functions with event-driven processing',
+    'API-first design with GraphQL interfaces',
+    'cloud-native solution with auto-scaling capabilities'
+  ];
+
+  return `Our solution for this slice leverages ${randomElement(approaches)} to deliver a modern, scalable implementation.\n\nKey Components:\n- React-based frontend with responsive design\n- RESTful APIs for all data operations\n- Real-time notification system\n- Comprehensive audit logging\n- Role-based access control\n\nThe architecture is designed to integrate seamlessly with existing MES components while providing the flexibility needed for future enhancements. We utilize industry-standard protocols and modern development practices to ensure maintainability and scalability.\n\nOur approach emphasizes incremental delivery, allowing for early validation and feedback throughout the implementation process.`;
+}
+
+function generateIngredientsNeeded(): string {
+  const ingredients = [
+    'Access to existing member database (read-only)',
+    'Authentication service endpoints and documentation',
+    'Data schema documentation for relevant entities',
+    'Test environment with representative data',
+    'API keys for required third-party services',
+    'Style guide and branding assets',
+    'Existing workflow documentation',
+    'Security and compliance requirements document'
+  ];
+
+  const selectedIngredients = [
+    randomElement(ingredients),
+    randomElement(ingredients),
+    randomElement(ingredients),
+    randomElement(ingredients)
+  ].filter((item, index, self) => self.indexOf(item) === index);
+
+  return `To successfully deliver this slice, we require the following from the state:\n\n${selectedIngredients.map((item, index) => `${index + 1}. ${item}`).join('\n')}\n\nAdditional Requirements:\n- Dedicated point of contact for technical questions\n- Access to staging environment for integration testing\n- Weekly status meeting with state technical team\n- Documentation of existing business rules and workflows\n\nWe will work closely with the state team to ensure smooth coordination and timely access to required resources.`;
+}
+
+function generateDependencies(): string {
+  return `Our slice implementation has the following dependencies:\n\nTechnical Dependencies:\n- Authentication service must be operational for user login\n- Database access layer must be available for data operations\n- Message queue service for asynchronous processing\n- File storage service for document management\n\nProcess Dependencies:\n- Approval of UI/UX designs before implementation begins\n- Sign-off on API specifications and data models\n- Completion of security review for production deployment\n- User acceptance testing completion\n\nExternal Dependencies:\n- Third-party API availability (if applicable)\n- Network connectivity and firewall rules configuration\n- SSL certificate provisioning for secure communications\n\nWe will provide a detailed dependency matrix and work with other teams to ensure all prerequisites are met according to the project timeline. Our team will proactively identify and escalate any blocking dependencies to maintain schedule adherence.`;
+}
+
+function generateSliceTeamDescription(): string {
+  return `Our slice delivery team consists of experienced professionals with deep expertise in Medicaid systems:\n\nCore Team:\n- 1 Technical Lead (10+ years healthcare IT experience)\n- 2 Senior Full-Stack Developers (React, Node.js, cloud platforms)\n- 1 UI/UX Designer (specializing in government applications)\n- 1 QA Engineer (automation and manual testing expertise)\n- 1 DevOps Engineer (CI/CD, cloud infrastructure)\n\nSupport Team:\n- 1 Project Manager (Agile/Scrum certified)\n- 1 Business Analyst (part-time, Medicaid domain expertise)\n- 1 Technical Writer (documentation specialist)\n\nTeam Qualifications:\n- Combined 50+ years of Medicaid system experience\n- Prior implementations with 3+ state Medicaid agencies\n- Active security clearances for team members\n- Cross-trained for flexibility and coverage\n\nAll team members are US-based and available for collaboration during standard business hours across multiple time zones.`;
+}
+
+export function generateSliceRFPTestData(): SliceRFPTestData {
+  const uniqueId = generateUniqueId();
+  const firstName = randomElement(contactFirstNames);
+  const lastName = randomElement(contactLastNames);
+  const company = randomElement(companyNames);
+  const sliceFocus = randomElement(sliceFocusOptions);
+
+  return {
+    companyName: `${company} (TEST)`,
+    contactName: `${firstName} ${lastName} (TEST)`,
+    contactEmail: `${firstName.toLowerCase()}.${lastName.toLowerCase()}.test.${uniqueId}@example.com`,
+    contactPhone: generatePhoneNumber(),
+    sliceFocus: sliceFocus,
+    customSliceFocus: '',
+    cakeSolution: generateSliceSolution(),
+    ingredientsNeeded: generateIngredientsNeeded(),
+    dependencies: generateDependencies(),
+    teamDescription: generateSliceTeamDescription(),
+    firstSliceCost: `$${(randomNumber(150, 400) * 1000).toLocaleString()}`,
+    cakeBatterScaleCost: `$${(randomNumber(50, 150) * 1000).toLocaleString()}`,
+    monthlyTeamCost: `$${(randomNumber(40, 100) * 1000).toLocaleString()}`
+  };
+}
+
+// Layer RFP Test Data
+
+export interface LayerRFPTestData {
+  companyName: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string;
+  layerCapability: string;
+  customLayerCapability: string;
+  definitionOfDone: string;
+  slaCommitments: string;
+  teamDescription: string;
+  definitionOfDoneCost: string;
+  monthlySupportCost: string;
+}
+
+const layerCapabilityOptions = [
+  'Identity & Access Management (IAM)',
+  'API Gateway & Rate Limiting',
+  'Data Validation & Transformation',
+  'Audit Logging & Compliance',
+  'Notification & Alerting',
+  'Document Management & Storage'
+];
+
+function generateDefinitionOfDone(): string {
+  return `Our Definition of Done for this layer capability includes comprehensive deliverables:\n\nTechnical Deliverables:\n- Fully functional service deployed to production environment\n- Complete API documentation with examples and use cases\n- Automated test suite with >90% code coverage\n- Infrastructure-as-code templates for deployment\n- Monitoring and alerting configuration\n- Performance benchmarking results\n\nDocumentation:\n- Technical architecture documentation\n- API reference guide with interactive examples\n- Operations runbook for troubleshooting\n- Security assessment and compliance documentation\n- Integration guide for consuming applications\n- Disaster recovery procedures\n\nQuality Gates:\n- All acceptance criteria met and verified\n- Security scan completed with no critical vulnerabilities\n- Performance requirements validated under load\n- User acceptance testing completed successfully\n- Code review completed by independent reviewer\n- Production deployment checklist completed\n\nKnowledge Transfer:\n- Training sessions for state technical team\n- Hands-on workshop for operations staff\n- Q&A sessions and documentation walkthrough\n\nAll deliverables will be provided in formats specified by the state and stored in designated repositories.`;
+}
+
+function generateSLACommitments(): string {
+  const uptime = randomElement(['99.9%', '99.95%', '99.99%']);
+  const responseTime = randomElement(['< 500ms', '< 200ms', '< 100ms']);
+
+  return `We commit to the following Service Level Agreements:\n\nAvailability:\n- Uptime: ${uptime} measured monthly\n- Planned maintenance windows: < 4 hours/month\n- Advance notice: 5 business days for planned maintenance\n\nPerformance:\n- API response time: ${responseTime} for 95th percentile\n- Throughput: Support 1000+ requests per second\n- Data processing latency: < 5 seconds end-to-end\n\nSupport Response Times:\n- Critical (P1): 15-minute response, 2-hour resolution target\n- High (P2): 1-hour response, 4-hour resolution target\n- Medium (P3): 4-hour response, 24-hour resolution target\n- Low (P4): 8-hour response, 72-hour resolution target\n\nIncident Management:\n- 24/7 on-call support for critical issues\n- Root cause analysis within 48 hours of resolution\n- Monthly service review meetings\n- Quarterly disaster recovery drills\n\nRemediation:\n- SLA credits for unmet commitments\n- Transparent reporting of all incidents\n- Continuous improvement process\n\nAll SLAs are backed by detailed monitoring and reporting, with monthly service reports provided to stakeholders.`;
+}
+
+function generateLayerTeamDescription(): string {
+  return `Our layer support team provides ongoing maintenance and enhancement:\n\nCore Support Team:\n- 1 Layer Technical Lead (senior architect level)\n- 2 Platform Engineers (infrastructure and services expertise)\n- 1 Security Engineer (part-time, security and compliance focus)\n- 1 DevOps Engineer (CI/CD and automation)\n\nOn-Call Coverage:\n- 24/7 on-call rotation for critical issues\n- Escalation path to senior architects\n- Average response time < 15 minutes for P1 incidents\n\nEnhancement Team:\n- 1 Product Owner (prioritization and roadmap)\n- Development resources allocated based on enhancement backlog\n- Quarterly planning for capability improvements\n\nTeam Expertise:\n- Cloud platform certifications (AWS/Azure/GCP)\n- Security certifications (CISSP, Security+)\n- 15+ years combined experience in government systems\n- Prior experience supporting mission-critical services\n\nSupport Model:\n- Proactive monitoring and issue detection\n- Regular health checks and optimization reviews\n- Continuous security patching and updates\n- Performance tuning and capacity planning\n\nThe team follows ITIL best practices for service management and maintains detailed runbooks for all operational procedures.`;
+}
+
+export function generateLayerRFPTestData(): LayerRFPTestData {
+  const uniqueId = generateUniqueId();
+  const firstName = randomElement(contactFirstNames);
+  const lastName = randomElement(contactLastNames);
+  const company = randomElement(companyNames);
+  const layerCapability = randomElement(layerCapabilityOptions);
+
+  return {
+    companyName: `${company} (TEST)`,
+    contactName: `${firstName} ${lastName} (TEST)`,
+    contactEmail: `${firstName.toLowerCase()}.${lastName.toLowerCase()}.test.${uniqueId}@example.com`,
+    contactPhone: generatePhoneNumber(),
+    layerCapability: layerCapability,
+    customLayerCapability: '',
+    definitionOfDone: generateDefinitionOfDone(),
+    slaCommitments: generateSLACommitments(),
+    teamDescription: generateLayerTeamDescription(),
+    definitionOfDoneCost: `$${(randomNumber(100, 300) * 1000).toLocaleString()}`,
+    monthlySupportCost: `$${(randomNumber(15, 50) * 1000).toLocaleString()}`
+  };
+}
