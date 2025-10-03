@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChefHat, DollarSign, Users, Package, FileText, Send } from 'lucide-react';
+import { ChefHat, DollarSign, Users, Package, FileText, Send, AlertCircle } from 'lucide-react';
 import { generateSliceRFPPDF } from '../utils/pdfGenerator';
 import { supabase } from '../lib/supabase';
 import { generateSliceRFPTestData } from '../utils/testDataGenerator';
@@ -231,6 +231,13 @@ const SliceRFPResponse: React.FC = () => {
 
   return (
     <div className="bg-white">
+      {isTestMode && (
+        <div className="fixed top-4 right-4 z-50 bg-yellow-500 text-black px-6 py-3 rounded-lg shadow-lg border-2 border-yellow-600 flex items-center space-x-2 animate-pulse">
+          <AlertCircle className="h-5 w-5" />
+          <span className="font-bold">TEST MODE ACTIVE (CTRL+I to toggle)</span>
+        </div>
+      )}
+
       {/* Header */}
       <section className="bg-mn-accent-teal text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
