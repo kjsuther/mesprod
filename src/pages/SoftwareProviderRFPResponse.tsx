@@ -39,7 +39,7 @@ const SoftwareProviderRFPResponse: React.FC = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 't') {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
         e.preventDefault();
         setIsTestMode(prev => {
           const newTestMode = !prev;
@@ -229,7 +229,7 @@ const SoftwareProviderRFPResponse: React.FC = () => {
           <AlertCircle className="h-5 w-5" />
           <div>
             <div className="font-bold">TEST MODE ACTIVE</div>
-            <div className="text-xs">Press CTRL+T to exit</div>
+            <div className="text-xs">Press CTRL+I to exit</div>
           </div>
         </div>
       )}
