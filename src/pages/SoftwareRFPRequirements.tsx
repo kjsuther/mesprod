@@ -184,9 +184,12 @@ const SoftwareRFPRequirements: React.FC = () => {
               Ensure you have all required components prepared before submitting your software RFP.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="inline-flex items-center justify-center px-8 py-3 bg-mn-secondary text-white font-semibold rounded-lg hover:bg-mn-accent-teal transition-colors">
+              <Link
+                to="/software-provider-rfp-response"
+                className="inline-flex items-center justify-center px-8 py-3 bg-mn-secondary text-white font-semibold rounded-lg hover:bg-mn-accent-teal transition-colors"
+              >
                 Submit Software RFP
-              </button>
+              </Link>
               <Link
                 to="/great-bake-off"
                 className="inline-flex items-center justify-center px-8 py-3 border-2 border-mn-secondary text-mn-secondary font-semibold rounded-lg hover:bg-mn-secondary hover:text-white transition-colors"
