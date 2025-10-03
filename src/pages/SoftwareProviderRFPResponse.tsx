@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { FileText, Shield, DollarSign, Users, Clock, Settings, Send } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { FileText, Shield, DollarSign, Users, Clock, Settings, Send, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { generateSoftwareProviderTestData } from '../utils/testDataGenerator';
 
 const SoftwareProviderRFPResponse: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -34,6 +35,76 @@ const SoftwareProviderRFPResponse: React.FC = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [isTestMode, setIsTestMode] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 't') {
+        e.preventDefault();
+        setIsTestMode(prev => {
+          const newTestMode = !prev;
+          if (newTestMode) {
+            populateTestData();
+            console.log('Test Mode ACTIVATED');
+          } else {
+            clearFormData();
+            console.log('Test Mode DEACTIVATED');
+          }
+          return newTestMode;
+        });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const populateTestData = () => {
+    const testData = generateSoftwareProviderTestData();
+    setFormData({
+      companyName: testData.companyName,
+      contactName: testData.contactName,
+      contactEmail: testData.contactEmail,
+      contactPhone: testData.contactPhone,
+      productName: testData.productName,
+      productDescription: testData.productDescription,
+      trialCommitment: testData.trialCommitment,
+      implementationModel: testData.implementationModel,
+      customImplementationDetails: testData.customImplementationDetails,
+      licenseAgreementText: testData.licenseAgreementText,
+      licenseAgreementFile: null,
+      pricingModel: testData.pricingModel,
+      billingApproach: testData.billingApproach,
+      teamStructure: testData.teamStructure,
+      hasFedRAMP: testData.hasFedRAMP,
+      otherCertifications: testData.otherCertifications,
+      provisioningTimeline: testData.provisioningTimeline,
+      documentationFiles: []
+    });
+  };
+
+  const clearFormData = () => {
+    setFormData({
+      companyName: '',
+      contactName: '',
+      contactEmail: '',
+      contactPhone: '',
+      productName: '',
+      productDescription: '',
+      trialCommitment: '',
+      implementationModel: '',
+      customImplementationDetails: '',
+      licenseAgreementText: '',
+      licenseAgreementFile: null,
+      pricingModel: '',
+      billingApproach: '',
+      teamStructure: '',
+      hasFedRAMP: false,
+      otherCertifications: '',
+      provisioningTimeline: '',
+      documentationFiles: []
+    });
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -92,7 +163,8 @@ const SoftwareProviderRFPResponse: React.FC = () => {
           otherCertifications: formData.otherCertifications
         },
         provisioningTimeline: formData.provisioningTimeline,
-        documentationFiles: formData.documentationFiles.map(f => f.name)
+        documentationFiles: formData.documentationFiles.map(f => f.name),
+        test_mode: isTestMode
       };
 
       const { data, error } = await supabase
@@ -152,6 +224,15 @@ const SoftwareProviderRFPResponse: React.FC = () => {
 
   return (
     <div className="bg-white">
+      {isTestMode && (
+        <div className="fixed top-4 right-4 z-50 bg-yellow-500 text-black px-6 py-3 rounded-lg shadow-lg border-2 border-yellow-600 flex items-center space-x-2 animate-pulse">
+          <AlertCircle className="h-5 w-5" />
+          <div>
+            <div className="font-bold">TEST MODE ACTIVE</div>
+            <div className="text-xs">Press CTRL+T to exit</div>
+          </div>
+        </div>
+      )}
       <section className="bg-mn-secondary text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-6">
@@ -167,7 +248,7 @@ const SoftwareProviderRFPResponse: React.FC = () => {
 
       <section className="py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <form onSubmit={handleSubmit} className="space-y-12">
+          <form onSubmit={handleSubmit} className={`space-y-12 ${isTestMode ? 'ring-4 ring-yellow-400 rounded-xl p-4' : ''}`}>
             <div className="bg-white rounded-xl shadow-lg p-8">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="bg-mn-primary rounded-full w-12 h-12 flex items-center justify-center">
@@ -587,10 +668,14 @@ const SoftwareProviderRFPResponse: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="inline-flex items-center justify-center px-8 py-4 bg-mn-secondary text-white font-semibold rounded-lg hover:bg-mn-accent-teal transition-colors text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`inline-flex items-center justify-center px-8 py-4 font-semibold rounded-lg transition-colors text-lg disabled:opacity-50 disabled:cursor-not-allowed ${
+                  isTestMode
+                    ? 'bg-yellow-500 text-black hover:bg-yellow-600 border-2 border-yellow-700'
+                    : 'bg-mn-secondary text-white hover:bg-mn-accent-teal'
+                }`}
               >
                 <Send className="mr-3 h-5 w-5" />
-                {isSubmitting ? 'Submitting...' : 'Submit Software Provider RFP'}
+                {isSubmitting ? 'Submitting...' : isTestMode ? 'Submit TEST Software Provider RFP' : 'Submit Software Provider RFP'}
               </button>
             </div>
           </form>
