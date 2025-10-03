@@ -255,6 +255,38 @@ const Feedback: React.FC = () => {
         </div>
       </section>
 
+      {/* RFI Engagement Results */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-mn-accent-teal text-white py-8 px-6 rounded-t-xl">
+            <h2 className="text-3xl font-bold">
+              RFI Engagement Results
+            </h2>
+          </div>
+          <div className="bg-white rounded-b-xl shadow-lg p-8">
+            <p className="text-lg text-gray-700 mb-8 leading-relaxed">
+              The following dashboard summarizes participation in the MES RFI process. It shows the number of
+              organizations and individuals who submitted responses, the types and sizes of vendors who engaged,
+              and how well the strategy resonated. These results will help inform next steps as DHS transitions
+              from the RFI into the upcoming RFP process.
+            </p>
+            <div className="flex justify-center">
+              <div className="w-full max-w-5xl">
+                <div className="relative w-full" style={{ paddingBottom: '62.25%' }}>
+                  <iframe
+                    title="RFI Vendor Survey Responses"
+                    className="absolute top-0 left-0 w-full h-full rounded-lg shadow-md"
+                    src="https://app.powerbi.com/view?r=eyJrIjoiMGQ1NGY1YjktNTAzMy00YzhiLTgzMzMtY2JhNWEzOTY4NDQ4IiwidCI6ImUwNTBkOWJiLTg4MDUtNGNkNi04NTRlLWQxYzYzMWI3ZjcxZCJ9"
+                    frameBorder="0"
+                    allowFullScreen={true}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </div>
   );
 };
