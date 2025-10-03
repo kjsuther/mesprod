@@ -272,14 +272,14 @@ const Feedback: React.FC = () => {
             </p>
             <div className="flex justify-center">
               <div className="w-full max-w-5xl">
-                <div className="relative w-full bg-gray-100 rounded-lg border-2 border-gray-200" style={{ paddingBottom: '62.25%' }}>
+                <div className="w-full bg-gray-100 rounded-lg border-2 border-gray-200 overflow-hidden" style={{ height: '600px' }}>
                   <iframe
                     title="RFI Vendor Survey Responses"
-                    className="absolute top-0 left-0 w-full h-full rounded-lg"
+                    width="100%"
+                    height="100%"
                     src="https://app.powerbi.com/view?r=eyJrIjoiMGQ1NGY1YjktNTAzMy00YzhiLTgzMzMtY2JhNWEzOTY4NDQ4IiwidCI6ImUwNTBkOWJiLTg4MDUtNGNkNi04NTRlLWQxYzYzMWI3ZjcxZCJ9"
                     frameBorder="0"
-                    allowFullScreen={true}
-                    sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                    allowFullScreen
                   />
                 </div>
                 <div className="mt-6 text-center">
