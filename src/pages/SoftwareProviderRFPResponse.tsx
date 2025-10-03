@@ -9,12 +9,17 @@ const SoftwareProviderRFPResponse: React.FC = () => {
     contactEmail: '',
     contactPhone: '',
 
+    productName: '',
+    productDescription: '',
+
     trialCommitment: '',
     implementationModel: '',
     customImplementationDetails: '',
 
+    licenseAgreementText: '',
+    licenseAgreementFile: null as File | null,
+
     pricingModel: '',
-    termsAndConditions: '',
     billingApproach: '',
 
     teamStructure: '',
@@ -22,7 +27,9 @@ const SoftwareProviderRFPResponse: React.FC = () => {
     hasFedRAMP: false,
     otherCertifications: '',
 
-    provisioningTimeline: ''
+    provisioningTimeline: '',
+
+    documentationFiles: [] as File[]
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -45,6 +52,22 @@ const SoftwareProviderRFPResponse: React.FC = () => {
     }
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fieldName: string) => {
+    const file = e.target.files?.[0] || null;
+    setFormData(prev => ({
+      ...prev,
+      [fieldName]: file
+    }));
+  };
+
+  const handleMultipleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setFormData(prev => ({
+      ...prev,
+      documentationFiles: files
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -52,12 +75,15 @@ const SoftwareProviderRFPResponse: React.FC = () => {
 
     try {
       const submissionData = {
+        productName: formData.productName,
+        productDescription: formData.productDescription,
         trialCommitment: formData.trialCommitment,
         implementationModel: formData.implementationModel,
         customImplementationDetails: formData.customImplementationDetails,
         softwareLicense: {
+          licenseAgreementText: formData.licenseAgreementText,
+          licenseAgreementFile: formData.licenseAgreementFile?.name || null,
           pricingModel: formData.pricingModel,
-          termsAndConditions: formData.termsAndConditions,
           billingApproach: formData.billingApproach
         },
         teamStructure: formData.teamStructure,
@@ -65,7 +91,8 @@ const SoftwareProviderRFPResponse: React.FC = () => {
           hasFedRAMP: formData.hasFedRAMP,
           otherCertifications: formData.otherCertifications
         },
-        provisioningTimeline: formData.provisioningTimeline
+        provisioningTimeline: formData.provisioningTimeline,
+        documentationFiles: formData.documentationFiles.map(f => f.name)
       };
 
       const { data, error } = await supabase
@@ -90,16 +117,20 @@ const SoftwareProviderRFPResponse: React.FC = () => {
         contactName: '',
         contactEmail: '',
         contactPhone: '',
+        productName: '',
+        productDescription: '',
         trialCommitment: '',
         implementationModel: '',
         customImplementationDetails: '',
+        licenseAgreementText: '',
+        licenseAgreementFile: null,
         pricingModel: '',
-        termsAndConditions: '',
         billingApproach: '',
         teamStructure: '',
         hasFedRAMP: false,
         otherCertifications: '',
-        provisioningTimeline: ''
+        provisioningTimeline: '',
+        documentationFiles: []
       });
 
       setTimeout(() => {
@@ -211,6 +242,49 @@ const SoftwareProviderRFPResponse: React.FC = () => {
             <div className="bg-white rounded-xl shadow-lg p-8">
               <div className="flex items-center space-x-3 mb-6">
                 <div className="bg-mn-accent-teal rounded-full w-12 h-12 flex items-center justify-center">
+                  <Settings className="h-6 w-6 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-mn-primary">Product Information</h2>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <label htmlFor="productName" className="block text-sm font-medium text-gray-700 mb-2">
+                    Product Name *
+                  </label>
+                  <input
+                    type="text"
+                    id="productName"
+                    name="productName"
+                    required
+                    value={formData.productName}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
+                    placeholder="Your software product name"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="productDescription" className="block text-sm font-medium text-gray-700 mb-2">
+                    Product Description *
+                  </label>
+                  <textarea
+                    id="productDescription"
+                    name="productDescription"
+                    required
+                    rows={6}
+                    value={formData.productDescription}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
+                    placeholder="Provide a comprehensive description of your software product, its key features, capabilities, and how it addresses MES modernization needs..."
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-lg p-8">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="bg-mn-secondary rounded-full w-12 h-12 flex items-center justify-center">
                   <FileText className="h-6 w-6 text-white" />
                 </div>
                 <h2 className="text-2xl font-bold text-mn-primary">Trial Commitment</h2>
@@ -291,6 +365,43 @@ const SoftwareProviderRFPResponse: React.FC = () => {
 
               <div className="space-y-6">
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    License Agreement
+                  </label>
+                  <p className="text-sm text-gray-500 mb-3">
+                    You can either upload a license agreement document or provide the details in the text field below
+                  </p>
+                  <div className="space-y-4">
+                    <div>
+                      <label htmlFor="licenseAgreementFile" className="block text-sm text-gray-600 mb-2">
+                        Upload License Agreement (PDF, DOC, DOCX)
+                      </label>
+                      <input
+                        type="file"
+                        id="licenseAgreementFile"
+                        accept=".pdf,.doc,.docx"
+                        onChange={(e) => handleFileChange(e, 'licenseAgreementFile')}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="licenseAgreementText" className="block text-sm text-gray-600 mb-2">
+                        Or enter license agreement details
+                      </label>
+                      <textarea
+                        id="licenseAgreementText"
+                        name="licenseAgreementText"
+                        rows={4}
+                        value={formData.licenseAgreementText}
+                        onChange={handleInputChange}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
+                        placeholder="Summarize key terms and conditions of your software license agreement..."
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
                   <label htmlFor="pricingModel" className="block text-sm font-medium text-gray-700 mb-2">
                     Pricing at scale with cost separation methodology *
                   </label>
@@ -303,22 +414,6 @@ const SoftwareProviderRFPResponse: React.FC = () => {
                     onChange={handleInputChange}
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
                     placeholder="Describe your pricing model, including how costs scale with usage, user count, or other metrics..."
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="termsAndConditions" className="block text-sm font-medium text-gray-700 mb-2">
-                    Terms and conditions *
-                  </label>
-                  <textarea
-                    id="termsAndConditions"
-                    name="termsAndConditions"
-                    required
-                    rows={4}
-                    value={formData.termsAndConditions}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
-                    placeholder="Summarize key terms and conditions of your software license agreement..."
                   />
                 </div>
 
@@ -436,6 +531,45 @@ const SoftwareProviderRFPResponse: React.FC = () => {
                 <p className="mt-2 text-sm text-gray-500">
                   If the environment is available immediately upon provisioning the licenses, enter "Immediate" or "0".
                 </p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-lg p-8">
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="bg-mn-accent-teal rounded-full w-12 h-12 flex items-center justify-center">
+                  <FileText className="h-6 w-6 text-white" />
+                </div>
+                <h2 className="text-2xl font-bold text-mn-primary">Product Documentation</h2>
+              </div>
+
+              <div>
+                <label htmlFor="documentationFiles" className="block text-sm font-medium text-gray-700 mb-2">
+                  Upload product documentation (optional)
+                </label>
+                <p className="text-sm text-gray-500 mb-3">
+                  You can upload multiple files such as technical specifications, user guides, architecture diagrams, etc.
+                </p>
+                <input
+                  type="file"
+                  id="documentationFiles"
+                  multiple
+                  accept=".pdf,.doc,.docx,.txt,.png,.jpg,.jpeg"
+                  onChange={handleMultipleFilesChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-mn-accent-teal focus:border-transparent"
+                />
+                {formData.documentationFiles.length > 0 && (
+                  <div className="mt-3">
+                    <p className="text-sm font-medium text-gray-700 mb-2">Selected files:</p>
+                    <ul className="text-sm text-gray-600 space-y-1">
+                      {formData.documentationFiles.map((file, index) => (
+                        <li key={index} className="flex items-center">
+                          <span className="w-2 h-2 bg-mn-accent-teal rounded-full mr-2"></span>
+                          {file.name} ({(file.size / 1024).toFixed(1)} KB)
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
 
