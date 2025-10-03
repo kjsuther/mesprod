@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Settings, DollarSign, Users, FileText, Send } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 const LayerRFPResponse: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -8,25 +9,28 @@ const LayerRFPResponse: React.FC = () => {
     contactName: '',
     contactEmail: '',
     contactPhone: '',
-    
+
     // Layer Capability
     layerCapability: '',
     customLayerCapability: '',
-    
+
     // Definition of Done and SLAs
     definitionOfDone: '',
     slaCommitments: '',
-    
+
     // Layer Support Team
     teamDescription: '',
     resume1: null as File | null,
     resume2: null as File | null,
     resume3: null as File | null,
-    
+
     // Costs
     definitionOfDoneCost: '',
     monthlySupportCost: ''
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -44,11 +48,71 @@ const LayerRFPResponse: React.FC = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Handle form submission and contract generation
-    console.log('Form submitted:', formData);
-    alert('Thank you for your submission! We will review your response and contact you soon.');
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+
+    try {
+      const submissionData = {
+        layerCapability: formData.layerCapability,
+        customLayerCapability: formData.customLayerCapability,
+        definitionOfDone: formData.definitionOfDone,
+        slaCommitments: formData.slaCommitments,
+        teamDescription: formData.teamDescription,
+        definitionOfDoneCost: formData.definitionOfDoneCost,
+        monthlySupportCost: formData.monthlySupportCost,
+        resumeFiles: {
+          resume1: formData.resume1?.name || null,
+          resume2: formData.resume2?.name || null,
+          resume3: formData.resume3?.name || null,
+        }
+      };
+
+      const { data, error } = await supabase
+        .from('rfp_submissions')
+        .insert({
+          rfp_type: 'layer',
+          company_name: formData.companyName,
+          contact_person: formData.contactName,
+          email: formData.contactEmail,
+          phone: formData.contactPhone || null,
+          submission_data: submissionData
+        })
+        .select()
+        .maybeSingle();
+
+      if (error) {
+        throw error;
+      }
+
+      setSubmitStatus('success');
+      setFormData({
+        companyName: '',
+        contactName: '',
+        contactEmail: '',
+        contactPhone: '',
+        layerCapability: '',
+        customLayerCapability: '',
+        definitionOfDone: '',
+        slaCommitments: '',
+        teamDescription: '',
+        resume1: null,
+        resume2: null,
+        resume3: null,
+        definitionOfDoneCost: '',
+        monthlySupportCost: ''
+      });
+
+      setTimeout(() => {
+        setSubmitStatus('idle');
+      }, 5000);
+    } catch (error) {
+      console.error('Error submitting RFP:', error);
+      setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const layerOptions = [
@@ -383,13 +447,24 @@ const LayerRFPResponse: React.FC = () => {
             </div>
 
             {/* Submit Button */}
-            <div className="text-center">
+            <div className="text-center space-y-4">
+              {submitStatus === 'success' && (
+                <div className="bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-lg">
+                  Thank you for your submission! We will review your Layer RFP response and contact you soon.
+                </div>
+              )}
+              {submitStatus === 'error' && (
+                <div className="bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-lg">
+                  There was an error submitting your response. Please try again or contact support.
+                </div>
+              )}
               <button
                 type="submit"
-                className="inline-flex items-center justify-center px-8 py-4 bg-mn-accent-brown text-white font-semibold rounded-lg hover:bg-mn-secondary transition-colors text-lg"
+                disabled={isSubmitting}
+                className="inline-flex items-center justify-center px-8 py-4 bg-mn-accent-brown text-white font-semibold rounded-lg hover:bg-mn-secondary transition-colors text-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Send className="mr-3 h-5 w-5" />
-                Submit Layer RFP Response
+                {isSubmitting ? 'Submitting...' : 'Submit Layer RFP Response'}
               </button>
             </div>
           </form>
