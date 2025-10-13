@@ -41,6 +41,11 @@ const Footer: React.FC = () => {
                   Reference Materials
                 </a>
               </li>
+              <li>
+                <a href="/admin/login" className="text-sm text-mn-neutral-blue hover:text-white transition-colors">
+                  Admin
+                </a>
+              </li>
             </ul>
           </div>
 
