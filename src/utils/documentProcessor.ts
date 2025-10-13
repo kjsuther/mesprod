@@ -57,11 +57,15 @@ const extractTextFromPlainText = async (file: File): Promise<string> => {
 const extractTextFromPDF = async (file: File): Promise<{ text: string; metadata?: any }> => {
   try {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     const formData = new FormData();
     formData.append('file', file);
 
     const response = await fetch(`${supabaseUrl}/functions/v1/extract-pdf-text`, {
       method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${supabaseKey}`,
+      },
       body: formData,
     });
 
@@ -81,11 +85,15 @@ const extractTextFromPDF = async (file: File): Promise<{ text: string; metadata?
 const extractTextFromPowerPoint = async (file: File): Promise<{ text: string; metadata?: any }> => {
   try {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     const formData = new FormData();
     formData.append('file', file);
 
     const response = await fetch(`${supabaseUrl}/functions/v1/extract-pptx-text`, {
       method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${supabaseKey}`,
+      },
       body: formData,
     });
 
@@ -105,11 +113,15 @@ const extractTextFromPowerPoint = async (file: File): Promise<{ text: string; me
 const extractTextFromWordDocument = async (file: File): Promise<{ text: string; metadata?: any }> => {
   try {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     const formData = new FormData();
     formData.append('file', file);
 
     const response = await fetch(`${supabaseUrl}/functions/v1/extract-docx-text`, {
       method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${supabaseKey}`,
+      },
       body: formData,
     });
 
@@ -129,11 +141,15 @@ const extractTextFromWordDocument = async (file: File): Promise<{ text: string; 
 const extractTextFromImage = async (file: File): Promise<{ text: string; metadata?: any }> => {
   try {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     const formData = new FormData();
     formData.append('file', file);
 
     const response = await fetch(`${supabaseUrl}/functions/v1/extract-image-text`, {
       method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${supabaseKey}`,
+      },
       body: formData,
     });
 
