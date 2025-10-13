@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
-import { Settings, DollarSign, Users, FileText, Send } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Settings, DollarSign, Users, FileText, Send, AlertCircle } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { generateLayerRFPTestData } from '../utils/testDataGenerator';
 
 const LayerRFPResponse: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -8,25 +10,90 @@ const LayerRFPResponse: React.FC = () => {
     contactName: '',
     contactEmail: '',
     contactPhone: '',
-    
+
     // Layer Capability
     layerCapability: '',
     customLayerCapability: '',
-    
+
     // Definition of Done and SLAs
     definitionOfDone: '',
     slaCommitments: '',
-    
+
     // Layer Support Team
     teamDescription: '',
     resume1: null as File | null,
     resume2: null as File | null,
     resume3: null as File | null,
-    
+
     // Costs
     definitionOfDoneCost: '',
     monthlySupportCost: ''
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [isTestMode, setIsTestMode] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+        e.preventDefault();
+        setIsTestMode(prev => {
+          const newTestMode = !prev;
+          if (newTestMode) {
+            populateTestData();
+            console.log('Test Mode ACTIVATED');
+          } else {
+            clearFormData();
+            console.log('Test Mode DEACTIVATED');
+          }
+          return newTestMode;
+        });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const populateTestData = () => {
+    const testData = generateLayerRFPTestData();
+    setFormData({
+      companyName: testData.companyName,
+      contactName: testData.contactName,
+      contactEmail: testData.contactEmail,
+      contactPhone: testData.contactPhone,
+      layerCapability: testData.layerCapability,
+      customLayerCapability: testData.customLayerCapability,
+      definitionOfDone: testData.definitionOfDone,
+      slaCommitments: testData.slaCommitments,
+      teamDescription: testData.teamDescription,
+      definitionOfDoneCost: testData.definitionOfDoneCost,
+      monthlySupportCost: testData.monthlySupportCost,
+      resume1: null,
+      resume2: null,
+      resume3: null
+    });
+  };
+
+  const clearFormData = () => {
+    setFormData({
+      companyName: '',
+      contactName: '',
+      contactEmail: '',
+      contactPhone: '',
+      layerCapability: '',
+      customLayerCapability: '',
+      definitionOfDone: '',
+      slaCommitments: '',
+      teamDescription: '',
+      definitionOfDoneCost: '',
+      monthlySupportCost: '',
+      resume1: null,
+      resume2: null,
+      resume3: null
+    });
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -44,11 +111,71 @@ const LayerRFPResponse: React.FC = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Handle form submission and contract generation
-    console.log('Form submitted:', formData);
-    alert('Thank you for your submission! We will review your response and contact you soon.');
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+
+    try {
+      const submissionData = {
+        layerCapability: formData.layerCapability,
+        customLayerCapability: formData.customLayerCapability,
+        definitionOfDone: formData.definitionOfDone,
+        slaCommitments: formData.slaCommitments,
+        teamDescription: formData.teamDescription,
+        definitionOfDoneCost: formData.definitionOfDoneCost,
+        monthlySupportCost: formData.monthlySupportCost,
+        resumeFiles: {
+          resume1: formData.resume1?.name || null,
+          resume2: formData.resume2?.name || null,
+          resume3: formData.resume3?.name || null,
+        }
+      };
+
+      const { data, error } = await supabase
+        .from('rfp_submissions')
+        .insert({
+          rfp_type: 'layer',
+          company_name: formData.companyName,
+          contact_person: formData.contactName,
+          email: formData.contactEmail,
+          phone: formData.contactPhone || null,
+          submission_data: submissionData
+        })
+        .select()
+        .maybeSingle();
+
+      if (error) {
+        throw error;
+      }
+
+      setSubmitStatus('success');
+      setFormData({
+        companyName: '',
+        contactName: '',
+        contactEmail: '',
+        contactPhone: '',
+        layerCapability: '',
+        customLayerCapability: '',
+        definitionOfDone: '',
+        slaCommitments: '',
+        teamDescription: '',
+        resume1: null,
+        resume2: null,
+        resume3: null,
+        definitionOfDoneCost: '',
+        monthlySupportCost: ''
+      });
+
+      setTimeout(() => {
+        setSubmitStatus('idle');
+      }, 5000);
+    } catch (error) {
+      console.error('Error submitting RFP:', error);
+      setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const layerOptions = [
@@ -74,6 +201,13 @@ const LayerRFPResponse: React.FC = () => {
 
   return (
     <div className="bg-white">
+      {isTestMode && (
+        <div className="fixed top-4 right-4 z-50 bg-yellow-500 text-black px-6 py-3 rounded-lg shadow-lg border-2 border-yellow-600 flex items-center space-x-2 animate-pulse">
+          <AlertCircle className="h-5 w-5" />
+          <span className="font-bold">TEST MODE ACTIVE (CTRL+I to toggle)</span>
+        </div>
+      )}
+
       {/* Header */}
       <section className="bg-mn-accent-brown text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -383,13 +517,24 @@ const LayerRFPResponse: React.FC = () => {
             </div>
 
             {/* Submit Button */}
-            <div className="text-center">
+            <div className="text-center space-y-4">
+              {submitStatus === 'success' && (
+                <div className="bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-lg">
+                  Thank you for your submission! We will review your Layer RFP response and contact you soon.
+                </div>
+              )}
+              {submitStatus === 'error' && (
+                <div className="bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-lg">
+                  There was an error submitting your response. Please try again or contact support.
+                </div>
+              )}
               <button
                 type="submit"
-                className="inline-flex items-center justify-center px-8 py-4 bg-mn-accent-brown text-white font-semibold rounded-lg hover:bg-mn-secondary transition-colors text-lg"
+                disabled={isSubmitting}
+                className="inline-flex items-center justify-center px-8 py-4 bg-mn-accent-brown text-white font-semibold rounded-lg hover:bg-mn-secondary transition-colors text-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Send className="mr-3 h-5 w-5" />
-                Submit Layer RFP Response
+                {isSubmitting ? 'Submitting...' : 'Submit Layer RFP Response'}
               </button>
             </div>
           </form>

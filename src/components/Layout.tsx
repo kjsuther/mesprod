@@ -1,12 +1,18 @@
 import React, { ReactNode } from 'react';
+import { useLocation } from 'react-router-dom';
 import Header from './Header';
 import Footer from './Footer';
+import { ChatWidget } from './ChatWidget';
 
 interface LayoutProps {
   children: ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
+  const location = useLocation();
+  const isAdminPage = location.pathname.startsWith('/admin');
+  const isChatbotPage = location.pathname === '/chatbot';
+
   return (
     <div className="min-h-screen bg-white flex flex-col">
       <Header />
@@ -22,6 +28,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         {children}
       </main>
       <Footer />
+      {!isAdminPage && !isChatbotPage && <ChatWidget />}
     </div>
   );
 };

@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { ChefHat, DollarSign, Users, Package, FileText, Send } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ChefHat, DollarSign, Users, Package, FileText, Send, AlertCircle } from 'lucide-react';
 import { generateSliceRFPPDF } from '../utils/pdfGenerator';
+import { supabase } from '../lib/supabase';
+import { generateSliceRFPTestData } from '../utils/testDataGenerator';
 
 const SliceRFPResponse: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -9,27 +11,96 @@ const SliceRFPResponse: React.FC = () => {
     contactName: '',
     contactEmail: '',
     contactPhone: '',
-    
+
     // Slice Focus
     sliceFocus: '',
     customSliceFocus: '',
-    
+
     // Cake Solution
     cakeSolution: '',
     ingredientsNeeded: '',
     dependencies: '',
-    
+
     // Baker Team
     teamDescription: '',
     resume1: null as File | null,
     resume2: null as File | null,
     resume3: null as File | null,
-    
+
     // Costs
     firstSliceCost: '',
     cakeBatterScaleCost: '',
     monthlyTeamCost: ''
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [isTestMode, setIsTestMode] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+        e.preventDefault();
+        setIsTestMode(prev => {
+          const newTestMode = !prev;
+          if (newTestMode) {
+            populateTestData();
+            console.log('Test Mode ACTIVATED');
+          } else {
+            clearFormData();
+            console.log('Test Mode DEACTIVATED');
+          }
+          return newTestMode;
+        });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const populateTestData = () => {
+    const testData = generateSliceRFPTestData();
+    setFormData({
+      companyName: testData.companyName,
+      contactName: testData.contactName,
+      contactEmail: testData.contactEmail,
+      contactPhone: testData.contactPhone,
+      sliceFocus: testData.sliceFocus,
+      customSliceFocus: testData.customSliceFocus,
+      cakeSolution: testData.cakeSolution,
+      ingredientsNeeded: testData.ingredientsNeeded,
+      dependencies: testData.dependencies,
+      teamDescription: testData.teamDescription,
+      firstSliceCost: testData.firstSliceCost,
+      cakeBatterScaleCost: testData.cakeBatterScaleCost,
+      monthlyTeamCost: testData.monthlyTeamCost,
+      resume1: null,
+      resume2: null,
+      resume3: null
+    });
+  };
+
+  const clearFormData = () => {
+    setFormData({
+      companyName: '',
+      contactName: '',
+      contactEmail: '',
+      contactPhone: '',
+      sliceFocus: '',
+      customSliceFocus: '',
+      cakeSolution: '',
+      ingredientsNeeded: '',
+      dependencies: '',
+      teamDescription: '',
+      firstSliceCost: '',
+      cakeBatterScaleCost: '',
+      monthlyTeamCost: '',
+      resume1: null,
+      resume2: null,
+      resume3: null
+    });
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -47,37 +118,80 @@ const SliceRFPResponse: React.FC = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+    setIsSubmitting(true);
+    setSubmitStatus('idle');
+
     try {
-      // Generate and download the PDF
-      generateSliceRFPPDF(formData);
-      
-      // Show success message
-      alert('Success! Your Slice RFP Response has been submitted and the PDF has been downloaded to your computer. We will review your submission and contact you soon.');
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      
-      // More user-friendly error message
-      let errorMessage = 'We encountered an issue while generating your PDF. ';
-      
-      if (error instanceof Error) {
-        // Check for common issues
-        if (error.message.includes('jsPDF')) {
-          errorMessage += 'This appears to be a PDF generation issue. Please try refreshing the page and submitting again.';
-        } else if (error.message.includes('file') || error.message.includes('File')) {
-          errorMessage += 'There may be an issue with one of your uploaded files. Please check that all files are valid and try again.';
-        } else {
-          errorMessage += 'Please try again in a moment.';
+      const submissionData = {
+        sliceFocus: formData.sliceFocus,
+        customSliceFocus: formData.customSliceFocus,
+        cakeSolution: formData.cakeSolution,
+        ingredientsNeeded: formData.ingredientsNeeded,
+        dependencies: formData.dependencies,
+        teamDescription: formData.teamDescription,
+        firstSliceCost: formData.firstSliceCost,
+        cakeBatterScaleCost: formData.cakeBatterScaleCost,
+        monthlyTeamCost: formData.monthlyTeamCost,
+        resumeFiles: {
+          resume1: formData.resume1?.name || null,
+          resume2: formData.resume2?.name || null,
+          resume3: formData.resume3?.name || null,
         }
-      } else {
-        errorMessage += 'Please try refreshing the page and submitting again.';
+      };
+
+      const { data, error } = await supabase
+        .from('rfp_submissions')
+        .insert({
+          rfp_type: 'slice',
+          company_name: formData.companyName,
+          contact_person: formData.contactName,
+          email: formData.contactEmail,
+          phone: formData.contactPhone || null,
+          submission_data: submissionData
+        })
+        .select()
+        .maybeSingle();
+
+      if (error) {
+        throw error;
       }
-      
-      errorMessage += '\n\nIf the problem continues, please contact support at mes.modernization.dhs@state.mn.us and include details about what you were doing when this error occurred.';
-      
-      alert(errorMessage);
+
+      try {
+        generateSliceRFPPDF(formData);
+      } catch (pdfError) {
+        console.error('Error generating PDF:', pdfError);
+      }
+
+      setSubmitStatus('success');
+      setFormData({
+        companyName: '',
+        contactName: '',
+        contactEmail: '',
+        contactPhone: '',
+        sliceFocus: '',
+        customSliceFocus: '',
+        cakeSolution: '',
+        ingredientsNeeded: '',
+        dependencies: '',
+        teamDescription: '',
+        resume1: null,
+        resume2: null,
+        resume3: null,
+        firstSliceCost: '',
+        cakeBatterScaleCost: '',
+        monthlyTeamCost: ''
+      });
+
+      setTimeout(() => {
+        setSubmitStatus('idle');
+      }, 5000);
+    } catch (error) {
+      console.error('Error submitting RFP:', error);
+      setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -117,6 +231,13 @@ const SliceRFPResponse: React.FC = () => {
 
   return (
     <div className="bg-white">
+      {isTestMode && (
+        <div className="fixed top-4 right-4 z-50 bg-yellow-500 text-black px-6 py-3 rounded-lg shadow-lg border-2 border-yellow-600 flex items-center space-x-2 animate-pulse">
+          <AlertCircle className="h-5 w-5" />
+          <span className="font-bold">TEST MODE ACTIVE (CTRL+I to toggle)</span>
+        </div>
+      )}
+
       {/* Header */}
       <section className="bg-mn-accent-teal text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -462,13 +583,24 @@ const SliceRFPResponse: React.FC = () => {
             </div>
 
             {/* Submit Button */}
-            <div className="text-center">
+            <div className="text-center space-y-4">
+              {submitStatus === 'success' && (
+                <div className="bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-lg">
+                  Thank you for your submission! We will review your Slice RFP response and contact you soon.
+                </div>
+              )}
+              {submitStatus === 'error' && (
+                <div className="bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-lg">
+                  There was an error submitting your response. Please try again or contact support.
+                </div>
+              )}
               <button
                 type="submit"
-                className="inline-flex items-center justify-center px-8 py-4 bg-mn-accent-teal text-white font-semibold rounded-lg hover:bg-mn-secondary transition-colors text-lg"
+                disabled={isSubmitting}
+                className="inline-flex items-center justify-center px-8 py-4 bg-mn-accent-teal text-white font-semibold rounded-lg hover:bg-mn-secondary transition-colors text-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Send className="mr-3 h-5 w-5" />
-                Submit Slice RFP Response
+                {isSubmitting ? 'Submitting...' : 'Submit Slice RFP Response'}
               </button>
             </div>
           </form>
