@@ -1,6 +1,3 @@
-import { createWorker } from 'tesseract.js';
-import mammoth from 'mammoth';
-import * as XLSX from 'xlsx';
 
 export interface ProcessedDocument {
   text: string;
@@ -49,6 +46,7 @@ export const getFileType = (filename: string): string => {
 
 const extractTextFromImage = async (file: File): Promise<string> => {
   try {
+    const { createWorker } = await import('tesseract.js');
     const worker = await createWorker('eng');
     const { data: { text } } = await worker.recognize(file);
     await worker.terminate();
@@ -61,8 +59,9 @@ const extractTextFromImage = async (file: File): Promise<string> => {
 
 const extractTextFromWord = async (file: File): Promise<string> => {
   try {
+    const mammoth = await import('mammoth');
     const buffer = await file.arrayBuffer();
-    const result = await mammoth.extractRawText({ arrayBuffer: buffer });
+    const result = await mammoth.default.extractRawText({ arrayBuffer: buffer });
     return result.value || '';
   } catch (error) {
     console.error('Error extracting text from Word document:', error);
@@ -72,6 +71,7 @@ const extractTextFromWord = async (file: File): Promise<string> => {
 
 const extractTextFromExcel = async (file: File): Promise<string> => {
   try {
+    const XLSX = await import('xlsx');
     const buffer = await file.arrayBuffer();
     const workbook = XLSX.read(buffer, { type: 'array' });
     let text = '';
