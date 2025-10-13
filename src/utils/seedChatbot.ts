@@ -20,8 +20,11 @@ export const seedDocumentChunks = async (
       .limit(1);
 
     if (existingChunks && existingChunks.length > 0) {
-      onProgress?.(0, total, 'Clearing existing chunks...');
-      await supabase.from('document_chunks').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      onProgress?.(0, total, 'Clearing existing website content chunks...');
+      await supabase
+        .from('document_chunks')
+        .delete()
+        .is('uploaded_document_id', null);
     }
 
     let processed = 0;

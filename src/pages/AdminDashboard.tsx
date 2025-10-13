@@ -4,9 +4,12 @@ import { Database, RefreshCw, LogOut, Upload, Trash2, BarChart3 } from 'lucide-r
 import { isAdminAuthenticated, clearAdminSession } from '../lib/adminAuth';
 import { seedDocumentChunks, getChunkStats } from '../utils/seedChatbot';
 import { supabase } from '../lib/supabase';
+import DocumentUpload from '../components/DocumentUpload';
+import DocumentList from '../components/DocumentList';
 
 const AdminDashboard: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'knowledge' | 'analytics'>('knowledge');
+  const [activeTab, setActiveTab] = useState<'knowledge' | 'documents' | 'analytics'>('knowledge');
+  const [documentRefreshTrigger, setDocumentRefreshTrigger] = useState(0);
   const [isSeeding, setIsSeeding] = useState(false);
   const [seedProgress, setSeedProgress] = useState({ current: 0, total: 0, message: '' });
   const [seedResult, setSeedResult] = useState<{ success: boolean; message: string } | null>(null);
@@ -120,7 +123,17 @@ const AdminDashboard: React.FC = () => {
                     : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
                 }`}
               >
-                Knowledge Base
+                Website Content
+              </button>
+              <button
+                onClick={() => setActiveTab('documents')}
+                className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === 'documents'
+                    ? 'border-mn-accent-teal text-mn-accent-teal'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                Documents
               </button>
               <button
                 onClick={() => setActiveTab('analytics')}
@@ -139,7 +152,7 @@ const AdminDashboard: React.FC = () => {
         {activeTab === 'knowledge' && (
           <div className="space-y-6">
             <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-2xl font-bold text-mn-primary mb-4">Knowledge Base Management</h2>
+              <h2 className="text-2xl font-bold text-mn-primary mb-4">Website Content Management</h2>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                 <div className="bg-mn-neutral-lightblue bg-opacity-20 rounded-lg p-4">
@@ -169,8 +182,12 @@ const AdminDashboard: React.FC = () => {
                   className="flex items-center space-x-2 bg-mn-accent-teal text-white px-6 py-3 rounded-lg hover:bg-mn-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <RefreshCw className={`h-5 w-5 ${isSeeding ? 'animate-spin' : ''}`} />
-                  <span>{isSeeding ? 'Processing...' : 'Seed/Re-index Knowledge Base'}</span>
+                  <span>{isSeeding ? 'Processing...' : 'Re-index Website Content'}</span>
                 </button>
+
+                <p className="text-sm text-gray-600 mt-2">
+                  This will re-extract and re-index all hardcoded website content. Uploaded documents are managed separately in the Documents tab.
+                </p>
 
                 {isSeeding && (
                   <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -215,6 +232,16 @@ const AdminDashboard: React.FC = () => {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {activeTab === 'documents' && (
+          <div className="space-y-6">
+            <DocumentUpload onUploadComplete={() => {
+              setDocumentRefreshTrigger(prev => prev + 1);
+              loadChunkStats();
+            }} />
+            <DocumentList refreshTrigger={documentRefreshTrigger} />
           </div>
         )}
 
