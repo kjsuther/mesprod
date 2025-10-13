@@ -13,6 +13,13 @@ export const SUPPORTED_FILE_TYPES = {
   'application/pdf': ['.pdf'],
   'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx'],
   'application/vnd.ms-powerpoint': ['.ppt'],
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+  'application/msword': ['.doc'],
+  'image/jpeg': ['.jpg', '.jpeg'],
+  'image/png': ['.png'],
+  'image/gif': ['.gif'],
+  'image/bmp': ['.bmp'],
+  'image/webp': ['.webp'],
   'text/plain': ['.txt'],
   'text/markdown': ['.md'],
 };
@@ -95,6 +102,54 @@ const extractTextFromPowerPoint = async (file: File): Promise<{ text: string; me
   }
 };
 
+const extractTextFromWordDocument = async (file: File): Promise<{ text: string; metadata?: any }> => {
+  try {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${supabaseUrl}/functions/v1/extract-docx-text`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to extract Word document text');
+    }
+
+    const result = await response.json();
+    return { text: result.text, metadata: result.metadata };
+  } catch (error) {
+    console.error('Error extracting text from Word document:', error);
+    throw new Error('Failed to extract text from Word document');
+  }
+};
+
+const extractTextFromImage = async (file: File): Promise<{ text: string; metadata?: any }> => {
+  try {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${supabaseUrl}/functions/v1/extract-image-text`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to extract text from image');
+    }
+
+    const result = await response.json();
+    return { text: result.text, metadata: result.metadata };
+  } catch (error) {
+    console.error('Error extracting text from image:', error);
+    throw new Error('Failed to extract text from image');
+  }
+};
+
 export const processDocument = async (file: File): Promise<ProcessedDocument> => {
   const fileType = getFileType(file.name);
 
@@ -114,6 +169,14 @@ export const processDocument = async (file: File): Promise<ProcessedDocument> =>
       Object.assign(metadata, result.metadata);
     } else if (fileType.includes('presentationml') || fileType.includes('ms-powerpoint')) {
       const result = await extractTextFromPowerPoint(file);
+      text = result.text;
+      Object.assign(metadata, result.metadata);
+    } else if (fileType.includes('wordprocessingml') || fileType === 'application/msword') {
+      const result = await extractTextFromWordDocument(file);
+      text = result.text;
+      Object.assign(metadata, result.metadata);
+    } else if (fileType.startsWith('image/')) {
+      const result = await extractTextFromImage(file);
       text = result.text;
       Object.assign(metadata, result.metadata);
     } else {

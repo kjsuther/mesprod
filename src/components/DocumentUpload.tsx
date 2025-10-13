@@ -119,7 +119,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ onUploadComplete }) => 
               Drag and drop a document here, or click to browse
             </p>
             <p className="text-sm text-gray-500 mb-4">
-              Supported formats: PDF, PowerPoint, TXT, MD
+              Supported formats: PDF, PowerPoint, Word Documents, Images, TXT, MD
             </p>
             <input
               ref={fileInputRef}
@@ -209,6 +209,8 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ onUploadComplete }) => 
         <ul className="list-disc list-inside space-y-1">
           <li>PDF documents (.pdf)</li>
           <li>Microsoft PowerPoint (.ppt, .pptx)</li>
+          <li>Microsoft Word (.doc, .docx)</li>
+          <li>Images (.jpg, .jpeg, .png, .gif, .bmp, .webp)</li>
           <li>Plain text (.txt)</li>
           <li>Markdown (.md)</li>
         </ul>
