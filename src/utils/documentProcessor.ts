@@ -13,7 +13,10 @@ export interface ProcessedDocument {
 }
 
 export const SUPPORTED_FILE_TYPES = {
+  'application/pdf': ['.pdf'],
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx'],
+  'application/vnd.ms-powerpoint': ['.ppt'],
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
   'application/vnd.ms-excel': ['.xls'],
   'text/plain': ['.txt'],
@@ -96,6 +99,54 @@ const extractTextFromPlainText = async (file: File): Promise<string> => {
   }
 };
 
+const extractTextFromPDF = async (file: File): Promise<{ text: string; metadata?: any }> => {
+  try {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${supabaseUrl}/functions/v1/extract-pdf-text`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to extract PDF text');
+    }
+
+    const result = await response.json();
+    return { text: result.text, metadata: result.metadata };
+  } catch (error) {
+    console.error('Error extracting text from PDF:', error);
+    throw new Error('Failed to extract text from PDF');
+  }
+};
+
+const extractTextFromPowerPoint = async (file: File): Promise<{ text: string; metadata?: any }> => {
+  try {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch(`${supabaseUrl}/functions/v1/extract-pptx-text`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to extract PowerPoint text');
+    }
+
+    const result = await response.json();
+    return { text: result.text, metadata: result.metadata };
+  } catch (error) {
+    console.error('Error extracting text from PowerPoint:', error);
+    throw new Error('Failed to extract text from PowerPoint');
+  }
+};
+
 export const processDocument = async (file: File): Promise<ProcessedDocument> => {
   const fileType = getFileType(file.name);
 
@@ -115,6 +166,14 @@ export const processDocument = async (file: File): Promise<ProcessedDocument> =>
       text = await extractTextFromWord(file);
     } else if (fileType.includes('spreadsheetml') || fileType.includes('ms-excel')) {
       text = await extractTextFromExcel(file);
+    } else if (fileType === 'application/pdf') {
+      const result = await extractTextFromPDF(file);
+      text = result.text;
+      Object.assign(metadata, result.metadata);
+    } else if (fileType.includes('presentationml') || fileType.includes('ms-powerpoint')) {
+      const result = await extractTextFromPowerPoint(file);
+      text = result.text;
+      Object.assign(metadata, result.metadata);
     } else {
       throw new Error(`Unsupported file type: ${fileType}`);
     }
