@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Database, RefreshCw, LogOut, Upload, Trash2, BarChart3 } from 'lucide-react';
 import { isAdminAuthenticated, clearAdminSession } from '../lib/adminAuth';
 import { seedDocumentChunks, getChunkStats } from '../utils/seedChatbot';
+import { seedWebsiteContent } from '../utils/seedWebsiteContent';
 import { supabase } from '../lib/supabase';
 import DocumentUpload from '../components/DocumentUpload';
 import DocumentList from '../components/DocumentList';
@@ -82,6 +83,24 @@ const AdminDashboard: React.FC = () => {
     });
 
     setSeedResult(result);
+    setIsSeeding(false);
+    await loadChunkStats();
+  };
+
+  const handleSeedWebsiteContent = async () => {
+    if (!confirm('This will add website content to the knowledge base. Continue?')) return;
+
+    setIsSeeding(true);
+    setSeedResult(null);
+    setSeedProgress({ current: 0, total: 0, message: 'Seeding website content...' });
+
+    try {
+      await seedWebsiteContent();
+      setSeedResult({ success: true, message: 'Website content seeded successfully!' });
+    } catch (error) {
+      setSeedResult({ success: false, message: `Error: ${error}` });
+    }
+
     setIsSeeding(false);
     await loadChunkStats();
   };
@@ -176,17 +195,28 @@ const AdminDashboard: React.FC = () => {
               <div className="border-t border-gray-200 pt-6">
                 <h3 className="text-lg font-semibold text-mn-primary mb-4">Actions</h3>
 
-                <button
-                  onClick={handleSeedDatabase}
-                  disabled={isSeeding}
-                  className="flex items-center space-x-2 bg-mn-accent-teal text-white px-6 py-3 rounded-lg hover:bg-mn-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <RefreshCw className={`h-5 w-5 ${isSeeding ? 'animate-spin' : ''}`} />
-                  <span>{isSeeding ? 'Processing...' : 'Re-index Website Content'}</span>
-                </button>
+                <div className="flex gap-4">
+                  <button
+                    onClick={handleSeedDatabase}
+                    disabled={isSeeding}
+                    className="flex items-center space-x-2 bg-mn-accent-teal text-white px-6 py-3 rounded-lg hover:bg-mn-primary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <RefreshCw className={`h-5 w-5 ${isSeeding ? 'animate-spin' : ''}`} />
+                    <span>{isSeeding ? 'Processing...' : 'Re-index PDF Content'}</span>
+                  </button>
+
+                  <button
+                    onClick={handleSeedWebsiteContent}
+                    disabled={isSeeding}
+                    className="flex items-center space-x-2 bg-mn-primary text-white px-6 py-3 rounded-lg hover:bg-mn-accent-teal transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <RefreshCw className={`h-5 w-5 ${isSeeding ? 'animate-spin' : ''}`} />
+                    <span>{isSeeding ? 'Processing...' : 'Index Website Content'}</span>
+                  </button>
+                </div>
 
                 <p className="text-sm text-gray-600 mt-2">
-                  This will re-extract and re-index all hardcoded website content. Uploaded documents are managed separately in the Documents tab.
+                  Use "Re-index PDF Content" to re-process uploaded PDF documents. Use "Index Website Content" to add website pages (FAQs, Home, etc.) to the knowledge base.
                 </p>
 
                 {isSeeding && (
