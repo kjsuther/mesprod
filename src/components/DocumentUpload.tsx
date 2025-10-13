@@ -119,7 +119,7 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ onUploadComplete }) => 
               Drag and drop a document here, or click to browse
             </p>
             <p className="text-sm text-gray-500 mb-4">
-              Supported formats: PDF, Word, PowerPoint, Excel, TXT, MD, JPG, PNG, GIF
+              Supported formats: PDF, PowerPoint, TXT, MD
             </p>
             <input
               ref={fileInputRef}
@@ -208,12 +208,9 @@ const DocumentUpload: React.FC<DocumentUploadProps> = ({ onUploadComplete }) => 
         <p className="font-semibold mb-1">Supported file formats:</p>
         <ul className="list-disc list-inside space-y-1">
           <li>PDF documents (.pdf)</li>
-          <li>Microsoft Word (.docx)</li>
           <li>Microsoft PowerPoint (.ppt, .pptx)</li>
-          <li>Microsoft Excel (.xls, .xlsx)</li>
           <li>Plain text (.txt)</li>
           <li>Markdown (.md)</li>
-          <li>Images (.jpg, .jpeg, .png, .gif) - text will be extracted using OCR</li>
         </ul>
         <p className="mt-2">Maximum file size: 50 MB</p>
       </div>

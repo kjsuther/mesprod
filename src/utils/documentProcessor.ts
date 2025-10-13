@@ -11,16 +11,10 @@ export interface ProcessedDocument {
 
 export const SUPPORTED_FILE_TYPES = {
   'application/pdf': ['.pdf'],
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
   'application/vnd.openxmlformats-officedocument.presentationml.presentation': ['.pptx'],
   'application/vnd.ms-powerpoint': ['.ppt'],
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
-  'application/vnd.ms-excel': ['.xls'],
   'text/plain': ['.txt'],
   'text/markdown': ['.md'],
-  'image/jpeg': ['.jpg', '.jpeg'],
-  'image/png': ['.png'],
-  'image/gif': ['.gif'],
 };
 
 export const getSupportedExtensions = (): string[] => {
@@ -42,52 +36,6 @@ export const getFileType = (filename: string): string => {
   }
 
   return 'application/octet-stream';
-};
-
-const extractTextFromImage = async (file: File): Promise<string> => {
-  try {
-    const { createWorker } = await import('tesseract.js');
-    const worker = await createWorker('eng');
-    const { data: { text } } = await worker.recognize(file);
-    await worker.terminate();
-    return text;
-  } catch (error) {
-    console.error('Error extracting text from image:', error);
-    throw new Error('Failed to extract text from image');
-  }
-};
-
-const extractTextFromWord = async (file: File): Promise<string> => {
-  try {
-    const mammoth = await import('mammoth');
-    const buffer = await file.arrayBuffer();
-    const result = await mammoth.default.extractRawText({ arrayBuffer: buffer });
-    return result.value || '';
-  } catch (error) {
-    console.error('Error extracting text from Word document:', error);
-    throw new Error('Failed to extract text from Word document');
-  }
-};
-
-const extractTextFromExcel = async (file: File): Promise<string> => {
-  try {
-    const XLSX = await import('xlsx');
-    const buffer = await file.arrayBuffer();
-    const workbook = XLSX.read(buffer, { type: 'array' });
-    let text = '';
-
-    workbook.SheetNames.forEach((sheetName) => {
-      const worksheet = workbook.Sheets[sheetName];
-      text += `Sheet: ${sheetName}\n`;
-      text += XLSX.utils.sheet_to_txt(worksheet, { FS: ' | ' });
-      text += '\n\n';
-    });
-
-    return text;
-  } catch (error) {
-    console.error('Error extracting text from Excel document:', error);
-    throw new Error('Failed to extract text from Excel document');
-  }
 };
 
 const extractTextFromPlainText = async (file: File): Promise<string> => {
@@ -160,12 +108,6 @@ export const processDocument = async (file: File): Promise<ProcessedDocument> =>
   try {
     if (fileType === 'text/plain' || fileType === 'text/markdown') {
       text = await extractTextFromPlainText(file);
-    } else if (fileType.startsWith('image/')) {
-      text = await extractTextFromImage(file);
-    } else if (fileType.includes('wordprocessingml')) {
-      text = await extractTextFromWord(file);
-    } else if (fileType.includes('spreadsheetml') || fileType.includes('ms-excel')) {
-      text = await extractTextFromExcel(file);
     } else if (fileType === 'application/pdf') {
       const result = await extractTextFromPDF(file);
       text = result.text;
