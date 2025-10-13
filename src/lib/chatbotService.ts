@@ -2,7 +2,7 @@ import { supabase } from './supabase';
 import { generateEmbedding, generateChatResponse, generateConversationTitle } from './openai';
 import { DocumentChunk, Message, Conversation, ChatRequest, ChatResponse } from './chatbot-types';
 
-const SIMILARITY_THRESHOLD = 0.7;
+const SIMILARITY_THRESHOLD = 0.3;
 const MAX_CONTEXT_CHUNKS = 5;
 
 export const searchSimilarChunks = async (query: string, limit: number = MAX_CONTEXT_CHUNKS): Promise<DocumentChunk[]> => {
