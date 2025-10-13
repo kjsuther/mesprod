@@ -9,6 +9,7 @@ const Header: React.FC = () => {
   const navigationItems = [
     { path: '/mes-modernization', label: 'MES Modernization Strategy' },
     { path: '/great-bake-off', label: 'The Great MES Modernization Bake-Off' },
+    { path: '/chatbot', label: 'AI Assistant' },
     { path: '/feedback', label: 'Feedback' },
     { path: '/reference-materials', label: 'Reference Materials' },
     { path: '/faqs', label: 'FAQs' },

@@ -13,6 +13,9 @@ import Feedback from './pages/Feedback';
 import ReferenceMaterials from './pages/ReferenceMaterials';
 import FAQs from './pages/FAQs';
 import MESTraining from './pages/MESTraining';
+import Chatbot from './pages/Chatbot';
+import AdminLogin from './pages/AdminLogin';
+import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
   return (
@@ -31,6 +34,9 @@ function App() {
           <Route path="/reference-materials" element={<ReferenceMaterials />} />
           <Route path="/faqs" element={<FAQs />} />
           <Route path="/mes-training" element={<MESTraining />} />
+          <Route path="/chatbot" element={<Chatbot />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
       </Layout>
     </Router>
